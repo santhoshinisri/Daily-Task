@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Daily Learning Tracker</title>
+  <style>
+    :root{--bg:#f0f4f8;--card:#ffffff;--accent:#4CAF50;--accent-hover:#45a049;--muted:#666;--border:#e0e6ed;--danger:#ef4444;--danger-hover:#dc2626;--edit:#3b82f6;--edit-hover:#2563eb}
+    *{box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;line-height:1.6;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:20px;min-height:100vh}
+    .wrap{max-width:1200px;margin:0 auto;background:var(--card);border-radius:16px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+    h1{font-size:28px;margin-bottom:8px;color:#1a202c;font-weight:700}
+    p.sub{color:var(--muted);margin-top:0;margin-bottom:20px;font-size:14px}
+
+    .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:14px}
+    label{font-size:13px;color:#2d3748;margin-bottom:6px;display:block;font-weight:600}
+    input[type=text], input[type=date], textarea, select{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:14px;transition:all 0.2s;background:#fafbfc}
+    input[type=text]:focus, input[type=date]:focus, textarea:focus, select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(76,175,80,0.1)}
+    textarea{min-height:80px;resize:vertical}
+    .actions{display:flex;gap:10px;align-items:center;margin-bottom:16px;margin-top:16px}
+    button{background:var(--accent);color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;transition:all 0.2s;box-shadow:0 2px 8px rgba(76,175,80,0.2)}
+    button:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(76,175,80,0.3)}
+    button.ghost{background:#f1f5f9;color:#475569;box-shadow:none}
+    button.ghost:hover{background:#e2e8f0}
+    table{width:100%;border-collapse:separate;border-spacing:0;margin-top:16px;overflow:hidden;border-radius:12px}
+    th,td{padding:12px;text-align:left;font-size:14px}
+    th{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;font-weight:600;border:none}
+    td{border-bottom:1px solid var(--border)}
+    tbody tr{background:#fff;transition:all 0.2s}
+    tbody tr:hover{background:#f8fafc;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+    tbody tr:last-child td{border-bottom:none}
+    .status-b{padding:6px 12px;border-radius:16px;font-size:12px;font-weight:600}
+    .s-Completed{background:#d1fae5;color:#065f46}
+    .s-Ongoing{background:#fef3c7;color:#92400e}
+    .s-Planned{background:#e0e7ff;color:#3730a3}
+    .s-Viewed{background:#dbeafe;color:#1e40af}
+    .s-Learning{background:#fce7f3;color:#9f1239}
+    .row-actions{display:flex;gap:6px}
+    .row-actions button{padding:0;width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;box-shadow:none}
+    .btn-edit{background:var(--edit);color:#fff}
+    .btn-edit:hover{background:var(--edit-hover)}
+    .btn-delete{background:var(--danger);color:#fff}
+    .btn-delete:hover{background:var(--danger-hover)}
+    .small{font-size:13px;color:var(--muted);margin-top:24px}
+    .add-col{margin-left:auto}
+    @media (max-width:760px){.form-row{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>📚 Daily Learning Tracker</h1>
+    <p class="sub">Track your daily learning activities. S.No resets per date. Add custom columns for additional fields.</p>
+
+    <div id="formArea">
+      <div class="form-row">
+        <div>
+          <label for="date">Date</label>
+          <input type="date" id="date">
+        </div>
+        <div>
+          <label for="day">Day</label>
+          <input type="text" id="day" placeholder="Monday">
+        </div>
+        <div>
+          <label for="time">Time</label>
+          <input type="text" id="time" placeholder="9:00 AM - 12:00 PM">
+        </div>
+        <div>
+          <label for="task">Task</label>
+          <input type="text" id="task" placeholder="Django Views">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label for="status">Status</label>
+          <select id="status">
+            <option>Ongoing</option>
+            <option>Completed</option>
+            <option>Planned</option>
+            <option>Viewed</option>
+            <option>Learning</option>
+          </select>
+        </div>
+        <div style="grid-column:span 2">
+          <label for="what">What I Have Done (short)</label>
+          <input type="text" id="what" placeholder="Implemented login/logout">
+        </div>
+      </div>
+
+      <div>
+        <label for="desc">Description (long)</label>
+        <textarea id="desc" placeholder="Detailed notes... (optional)"></textarea>
+      </div>
+
+      <div class="actions">
+        <button id="saveBtn">Save Entry</button>
+        <button class="ghost" id="cancelEditBtn" style="display:none">Cancel Edit</button>
+        <button class="ghost add-col" id="addColBtn">+ Add Column</button>
+      </div>
+    </div>
+
+    <table id="dataTable" role="table" aria-label="Learning entries">
+      <thead id="tableHead">
+        <tr id="headRow">
+          <th>S.No</th>
+          <th>Date</th>
+          <th>Day</th>
+          <th>Time</th>
+          <th>Task</th>
+          <th>Status</th>
+          <th>What I Have Done</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+
+    <p class="small">💾 Entries are stored in your browser's localStorage. Export data via browser devtools if needed.</p>
+  </div>
+
+  <script>
+    // --- Data structures ---
+    const STORAGE_KEY = 'learningEntries_v1';
+    let customColumns = JSON.parse(localStorage.getItem('learningCustomColumns') || '[]');
+    let entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    let editIndex = -1;
+
+    // --- Elements ---
+    const dateEl = document.getElementById('date');
+    const dayEl = document.getElementById('day');
+    const timeEl = document.getElementById('time');
+    const taskEl = document.getElementById('task');
+    const statusEl = document.getElementById('status');
+    const whatEl = document.getElementById('what');
+    const descEl = document.getElementById('desc');
+    const saveBtn = document.getElementById('saveBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const tableBody = document.getElementById('tableBody');
+    const headRow = document.getElementById('headRow');
+    const addColBtn = document.getElementById('addColBtn');
+
+    // --- Helpers ---
+    function todayISO(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10)}
+    function weekdayFromISO(iso){ const d=new Date(iso); return d.toLocaleDateString(undefined,{weekday:'long'}) }
+    function formatDate(iso){ if(!iso) return ''; const d=new Date(iso); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}).replace(/\//g,'.') }
+
+    function saveAll(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); localStorage.setItem('learningCustomColumns', JSON.stringify(customColumns)); }
+
+    function renderHead(){
+      const base = ['S.No','Date','Day','Time','Task','Status','What I Have Done','Description'];
+      headRow.innerHTML = '';
+      base.forEach(h=>{ const th=document.createElement('th'); th.textContent=h; headRow.appendChild(th); });
+      customColumns.forEach(c=>{ const th=document.createElement('th'); th.textContent=c; headRow.appendChild(th); });
+      const thAct=document.createElement('th'); thAct.textContent='Actions'; headRow.appendChild(thAct);
+    }
+
+    function renderTable(){
+      renderHead();
+      tableBody.innerHTML = '';
+
+      const sorted = entries.slice().sort((a,b)=> (a.date>b.date)?1: a.date<b.date?-1: (a._createdAt||0)-(b._createdAt||0));
+      const counters = {};
+
+      sorted.forEach((entry, idx) => {
+        const d = entry.date;
+        counters[d] = (counters[d] || 0) + 1;
+        const sno = counters[d];
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${sno}</strong></td>
+          <td>${formatDate(entry.date)}</td>
+          <td>${entry.day || '-'}</td>
+          <td>${escapeHtml(entry.time || '-')}</td>
+          <td>${escapeHtml(entry.task || '-')}</td>
+          <td><span class="status-b s-${safeClass(entry.status || '')}">${entry.status || '-'}</span></td>
+          <td>${escapeHtml(entry.what || '-')}</td>
+          <td>${escapeHtml(entry.desc || '-')}</td>
+        `;
+
+        customColumns.forEach(col => {
+          const val = entry.custom && entry.custom[col] ? entry.custom[col] : '-';
+          const td = document.createElement('td'); td.textContent = val; tr.appendChild(td);
+        });
+
+        const actionsTd = document.createElement('td');
+        const editBtn = document.createElement('button'); 
+        editBtn.className = 'btn-edit';
+        editBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
+        editBtn.title = 'Edit';
+        editBtn.onclick = ()=> startEdit(entry._id);
+        
+        const delBtn = document.createElement('button'); 
+        delBtn.className = 'btn-delete';
+        delBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+        delBtn.title = 'Delete';
+        delBtn.onclick = ()=> deleteEntry(entry._id);
+        
+        actionsTd.className = 'row-actions'; 
+        actionsTd.appendChild(editBtn); 
+        actionsTd.appendChild(delBtn);
+        tr.appendChild(actionsTd);
+
+        tableBody.appendChild(tr);
+      });
+    }
+
+    function safeClass(s){ return (s||'').replace(/[^A-Za-z0-9_-]/g,'') }
+    function escapeHtml(t){ if(!t) return ''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+
+    function addEntry(obj){
+      obj._id = Date.now() + '-' + Math.random().toString(36).slice(2,8);
+      obj._createdAt = Date.now();
+      if(!obj.custom) obj.custom = {};
+      entries.push(obj);
+      saveAll(); renderTable(); clearForm();
+    }
+
+    function updateEntry(id, newObj){
+      const i = entries.findIndex(e=>e._id===id);
+      if(i>-1){ newObj._id = id; newObj._createdAt = entries[i]._createdAt; entries[i] = newObj; saveAll(); renderTable(); clearForm(); }
+    }
+
+    function deleteEntry(id){ if(!confirm('Delete this entry?')) return; entries = entries.filter(e=>e._id !== id); saveAll(); renderTable(); }
+
+    function startEdit(id){ const i = entries.findIndex(e=>e._id===id); if(i===-1) return; const entry=entries[i]; editIndex = id; fillForm(entry); saveBtn.textContent='Update Entry'; cancelEditBtn.style.display='inline-block'; }
+
+    function fillForm(entry){ 
+      dateEl.value = entry.date || ''; 
+      dayEl.value = entry.day || ''; 
+      timeEl.value = entry.time || ''; 
+      taskEl.value = entry.task || ''; 
+      statusEl.value = entry.status || 'Ongoing'; 
+      whatEl.value = entry.what || ''; 
+      descEl.value = entry.desc || '';
+      customColumns.forEach(col => {
+        let el = document.getElementById('cust_' + col);
+        if(!el){ addCustomInputToForm(col,''); el = document.getElementById('cust_' + col); }
+        el.value = (entry.custom && entry.custom[col]) ? entry.custom[col] : '';
+      });
+    }
+
+    function clearForm(){ 
+      editIndex = -1; 
+      saveBtn.textContent='Save Entry'; 
+      cancelEditBtn.style.display='none'; 
+      dateEl.value=''; 
+      dayEl.value=''; 
+      timeEl.value=''; 
+      taskEl.value=''; 
+      statusEl.value='Ongoing'; 
+      whatEl.value=''; 
+      descEl.value=''; 
+      document.querySelectorAll('.cust-input').forEach(i=>i.value='');
+      setDefaults();
+    }
+
+    function collectForm(){
+      const obj = {
+        date: dateEl.value || '',
+        day: dayEl.value || '',
+        time: timeEl.value || '',
+        task: taskEl.value || '',
+        status: statusEl.value || '',
+        what: whatEl.value || '',
+        desc: descEl.value || '',
+        custom: {}
+      };
+      customColumns.forEach(col => { const el = document.getElementById('cust_' + col); if(el) obj.custom[col] = el.value || ''; });
+      return obj;
+    }
+
+    function addCustomColumn(){
+      const name = prompt('Enter new column name (e.g. Project, Notes):');
+      if(!name) return; const key = name.trim(); if(!key) return; if(customColumns.includes(key)){ alert('Column already exists'); return }
+      customColumns.push(key);
+      addCustomInputToForm(key,'');
+      saveAll(); renderTable();
+    }
+
+    function addCustomInputToForm(col, val){
+      const id = 'cust_' + col;
+      if(document.getElementById(id)) return;
+      const wrapper = document.createElement('div'); wrapper.style.marginTop = '10px';
+      const label = document.createElement('label'); label.htmlFor = id; label.textContent = col; wrapper.appendChild(label);
+      const input = document.createElement('input'); input.type='text'; input.id = id; input.className = 'cust-input'; input.value = val || ''; input.placeholder = col; wrapper.appendChild(input);
+      document.getElementById('formArea').insertBefore(wrapper, document.querySelector('.actions'));
+    }
+
+    saveBtn.addEventListener('click', ()=>{
+      const formObj = collectForm();
+      if(!formObj.date){ alert('Please select Date'); return }
+      if(!formObj.day){ formObj.day = weekdayFromISO(formObj.date); }
+      if(editIndex === -1){ addEntry(formObj); } else { updateEntry(editIndex, formObj); }
+    });
+
+    cancelEditBtn.addEventListener('click', ()=>{ clearForm(); });
+    addColBtn.addEventListener('click', addCustomColumn);
+
+    function setDefaults(){ if(!dateEl.value) dateEl.value = todayISO(); if(!dayEl.value) dayEl.value = weekdayFromISO(dateEl.value); }
+    dateEl.addEventListener('change', ()=>{ if(!dayEl.value) dayEl.value = weekdayFromISO(dateEl.value); });
+
+    function initCustomInputs(){ customColumns.forEach(col => addCustomInputToForm(col,'')); }
+
+    window._tracker = { addEntryRaw: addEntry, getEntries: ()=>entries, clearAll: ()=>{ if(confirm('Clear ALL entries?')){ entries=[]; saveAll(); renderTable(); } } };
+
+    (function boot(){ initCustomInputs(); setDefaults(); renderTable(); })();
+
+  </script>
+</body>
+</html>
